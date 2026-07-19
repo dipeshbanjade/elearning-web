@@ -1,4 +1,3 @@
-import react from "react";
 export default function ForgetPassword() {
   return (
     <div className="container mt-5">

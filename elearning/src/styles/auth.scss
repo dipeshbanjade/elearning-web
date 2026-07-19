@@ -1,0 +1,518 @@
+@use "sass:color";
+
+// ============================================================
+// Variables
+// ============================================================
+$primary:       #4F46E5;
+$primary-dark:  #3730A3;
+$primary-light: #EEF2FF;
+$accent:        #06B6D4;
+$bg:            #F1F5F9;
+$text:          #1E293B;
+$text-muted:    #64748B;
+$border:        #E2E8F0;
+$white:         #FFFFFF;
+$error:         #EF4444;
+$success:       #10B981;
+
+$radius-sm: 8px;
+$radius:    12px;
+$radius-lg: 16px;
+
+$shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+$shadow:    0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.05);
+$shadow-lg: 0 20px 25px -5px rgba(0,0,0,.1), 0 10px 10px -5px rgba(0,0,0,.04);
+
+// ============================================================
+// Base reset
+// ============================================================
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  background: $bg;
+  color: $text;
+  -webkit-font-smoothing: antialiased;
+}
+
+// ============================================================
+// AUTH LAYOUT  (login + register)
+// ============================================================
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+
+  // ── Left branding panel ─────────────────────────────────
+  .auth-brand {
+    display: none;
+
+    @media (min-width: 992px) {
+      display: flex;
+      flex: 0 0 46%;
+      flex-direction: column;
+      justify-content: center;
+      padding: 4rem 3.5rem;
+      background: linear-gradient(150deg, $primary 0%, $primary-dark 55%, color.adjust($primary-dark, $lightness: -10%) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    // Decorative circles
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    &::before {
+      top: -15%;
+      right: -12%;
+      width: 480px;
+      height: 480px;
+      background: rgba(255,255,255,.06);
+    }
+    &::after {
+      bottom: -18%;
+      left: -10%;
+      width: 380px;
+      height: 380px;
+      background: rgba(255,255,255,.04);
+    }
+
+    .brand-inner { position: relative; z-index: 1; }
+
+    .brand-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: $white;
+      letter-spacing: -.5px;
+      margin-bottom: 3.5rem;
+
+      .logo-badge {
+        background: rgba(255,255,255,.18);
+        border-radius: $radius-sm;
+        padding: .25rem .6rem;
+        font-size: .9rem;
+      }
+    }
+
+    .brand-headline {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: $white;
+      line-height: 1.2;
+      letter-spacing: -.5px;
+      margin-bottom: .75rem;
+    }
+
+    .brand-sub {
+      font-size: 1rem;
+      color: rgba(255,255,255,.7);
+      line-height: 1.75;
+      max-width: 360px;
+      margin-bottom: 3rem;
+    }
+
+    .brand-features {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      li {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        font-size: .9rem;
+        color: rgba(255,255,255,.85);
+        margin-bottom: .85rem;
+
+        .check-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: rgba(255,255,255,.2);
+          font-size: .65rem;
+          font-weight: 900;
+        }
+      }
+    }
+  }
+
+  // ── Right form panel ────────────────────────────────────
+  .auth-form-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem;
+
+    @media (min-width: 576px) { padding: 2.5rem; }
+  }
+
+  .auth-card {
+    width: 100%;
+    max-width: 440px;
+  }
+
+  // ── Header ──────────────────────────────────────────────
+  .auth-header {
+    margin-bottom: 2rem;
+
+    .auth-logo-mobile {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: $primary;
+      letter-spacing: -.5px;
+      margin-bottom: 1.75rem;
+
+      @media (min-width: 992px) { display: none; }
+    }
+
+    h1 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: $text;
+      letter-spacing: -.5px;
+      margin: 0 0 .3rem;
+    }
+
+    p {
+      font-size: .9rem;
+      color: $text-muted;
+      margin: 0;
+    }
+  }
+
+  // ── Form fields ─────────────────────────────────────────
+  .auth-field {
+    margin-bottom: 1.1rem;
+
+    label {
+      display: block;
+      font-size: .82rem;
+      font-weight: 600;
+      color: $text;
+      margin-bottom: .35rem;
+      letter-spacing: .01em;
+    }
+
+    input, select {
+      display: block;
+      width: 100%;
+      padding: .72rem 1rem;
+      border: 1.5px solid $border;
+      border-radius: $radius;
+      font-size: .93rem;
+      color: $text;
+      background: $white;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+
+      &::placeholder { color: #94A3B8; }
+
+      &:focus {
+        border-color: $primary;
+        box-shadow: 0 0 0 3px rgba($primary, .12);
+      }
+
+      &.is-error {
+        border-color: $error;
+        box-shadow: 0 0 0 3px rgba($error, .1);
+      }
+    }
+
+    select { appearance: none; cursor: pointer; }
+
+    .field-error {
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+      margin-top: .3rem;
+      font-size: .78rem;
+      color: $error;
+      font-weight: 500;
+    }
+  }
+
+  .auth-forgot {
+    text-align: right;
+    margin-top: -.5rem;
+    margin-bottom: 1.25rem;
+
+    a {
+      font-size: .82rem;
+      font-weight: 600;
+      color: $primary;
+      text-decoration: none;
+      &:hover { text-decoration: underline; }
+    }
+  }
+
+  // ── Primary button ──────────────────────────────────────
+  .auth-btn {
+    display: block;
+    width: 100%;
+    padding: .82rem 1rem;
+    background: $primary;
+    color: $white;
+    border: none;
+    border-radius: $radius;
+    font-size: .95rem;
+    font-weight: 700;
+    letter-spacing: .01em;
+    cursor: pointer;
+    margin-top: .5rem;
+    transition: background .15s, box-shadow .15s, transform .1s;
+
+    &:hover {
+      background: $primary-dark;
+      box-shadow: 0 4px 16px rgba($primary, .38);
+      transform: translateY(-1px);
+    }
+
+    &:active { transform: translateY(0); }
+  }
+
+  // ── Switch link ─────────────────────────────────────────
+  .auth-switch {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: .88rem;
+    color: $text-muted;
+
+    a {
+      color: $primary;
+      font-weight: 600;
+      text-decoration: none;
+      margin-left: .25rem;
+      &:hover { text-decoration: underline; }
+    }
+  }
+
+  // ── Two-column row for name fields ──────────────────────
+  .auth-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75rem;
+  }
+}
+
+// ============================================================
+// LOGIN STEP PAGE
+// ============================================================
+.step-page {
+  min-height: 100vh;
+  background: $bg;
+  display: flex;
+  flex-direction: column;
+
+  // ── Top nav ─────────────────────────────────────────────
+  .step-nav {
+    background: $white;
+    border-bottom: 1px solid $border;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: $shadow-sm;
+
+    .step-nav-logo {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: $primary;
+      letter-spacing: -.5px;
+    }
+
+    .step-nav-progress {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+
+      .progress-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: $border;
+        transition: background .2s;
+
+        &.active { background: $primary; }
+      }
+
+      .progress-label {
+        font-size: .8rem;
+        font-weight: 600;
+        color: $text-muted;
+        margin-left: .4rem;
+      }
+    }
+  }
+
+  // ── Body ────────────────────────────────────────────────
+  .step-body {
+    flex: 1;
+    padding: 2.5rem 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .step-title {
+    margin-bottom: 2rem;
+
+    .step-badge {
+      display: inline-block;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: $primary;
+      background: $primary-light;
+      border-radius: 20px;
+      padding: .25rem .75rem;
+      margin-bottom: .75rem;
+    }
+
+    h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: $text;
+      letter-spacing: -.5px;
+      margin: 0 0 .35rem;
+    }
+
+    p {
+      font-size: .95rem;
+      color: $text-muted;
+      margin: 0;
+    }
+  }
+
+  // ── Subject grid ─────────────────────────────────────────
+  .subject-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+
+    @media (min-width: 768px) { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  .subject-card {
+    position: relative;
+    border: 2px solid $border;
+    border-radius: $radius-lg;
+    padding: 1.75rem 1rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    background: $white;
+    transition: all .18s ease;
+    box-shadow: $shadow-sm;
+    user-select: none;
+
+    &:hover {
+      border-color: color.adjust($primary, $lightness: 20%);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba($primary, .1);
+    }
+
+    &.selected {
+      border-color: $primary;
+      background: $primary-light;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba($primary, .18);
+
+      .subject-name { color: $primary; }
+
+      .subject-check {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .subject-check {
+      position: absolute;
+      top: .65rem;
+      right: .65rem;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: $primary;
+      color: $white;
+      font-size: .6rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(.4);
+      transition: opacity .18s, transform .18s;
+    }
+
+    .subject-icon {
+      font-size: 2.4rem;
+      line-height: 1;
+      margin-bottom: .75rem;
+    }
+
+    .subject-name {
+      font-size: .9rem;
+      font-weight: 700;
+      color: $text;
+      transition: color .18s;
+    }
+  }
+
+  // ── Sticky footer with Next button ───────────────────────
+  .step-footer {
+    background: $white;
+    border-top: 1px solid $border;
+    padding: 1.1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .step-footer-info {
+      font-size: .85rem;
+      color: $text-muted;
+
+      strong { color: $primary; }
+    }
+
+    .step-next-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .75rem 2rem;
+      background: $primary;
+      color: $white;
+      border: none;
+      border-radius: $radius;
+      font-size: .92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .18s;
+
+      .btn-arrow { transition: transform .18s; }
+
+      &:hover:not(:disabled) {
+        background: $primary-dark;
+        box-shadow: 0 4px 16px rgba($primary, .38);
+        transform: translateY(-1px);
+
+        .btn-arrow { transform: translateX(4px); }
+      }
+
+      &:disabled {
+        opacity: .4;
+        cursor: not-allowed;
+        transform: none;
+      }
+    }
+  }
+}

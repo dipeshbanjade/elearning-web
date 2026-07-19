@@ -1,0 +1,115 @@
+import { useEffect, useRef, useState } from "react";
+import { Link, Navigate, Outlet, useNavigate } from "react-router-dom";
+import LoginApi from "../api/login";
+import { getStoredUser, clearStoredUser } from "../helper/helper";
+import AdminSidebar from "./AdminSidebar";
+
+export default function SuperAdminLayout() {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const user = getStoredUser();
+  const fullname = user?.fullname ?? "Admin";
+  const initial = fullname.charAt(0).toUpperCase();
+
+  useEffect(() => {
+    const handle = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
+
+  // Only super-admins get past here — everyone else gets bounced.
+  // (Placed after the hooks above, since hooks must always run in the same
+  // order on every render.)
+  if (!user?.token) return <Navigate to="/" replace />;
+  if (user.userRole !== "sup") return <Navigate to="/dashboard" replace />;
+
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      if (user?.token) await LoginApi.userLogout(user.token);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoggingOut(false);
+    }
+    clearStoredUser();
+    navigate("/");
+  };
+
+  return (
+    <div className="app-layout">
+      <nav className="app-nav">
+        <div className="d-flex align-items-center gap-3">
+          <button
+            type="button"
+            className="navbar-toggler admin-toggler"
+            onClick={() => setSidebarOpen((o) => !o)}
+            aria-label="Toggle menu"
+          >
+            <span className="navbar-toggler-icon" />
+          </button>
+
+          <Link to="/admin" className="nav-logo" onClick={() => setSidebarOpen(false)}>
+            eLearning Admin
+          </Link>
+        </div>
+
+        <div className="nav-right" ref={dropdownRef}>
+          <button
+            className="nav-avatar-btn"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+          >
+            <span className="avatar-circle">{initial}</span>
+            <span className="avatar-name">{fullname}</span>
+            <span className={`avatar-chevron ${open ? "open" : ""}`}>▼</span>
+          </button>
+
+          {open && (
+            <div className="nav-dropdown">
+              <div className="dd-user">
+                <div className="dd-user-name">{fullname}</div>
+                <span className="dd-user-role">{user?.userRole ?? "admin"}</span>
+              </div>
+
+              <div className="dd-menu">
+                <button
+                  className="dd-item danger"
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                >
+                  <span className="dd-icon">🚪</span>
+                  {loggingOut ? "Logging out…" : "Logout"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </nav>
+
+      <div className="admin-shell">
+        {sidebarOpen && (
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 sidebar-backdrop"
+            style={{ pointerEvents: "auto" }}
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        <AdminSidebar open={sidebarOpen} onLinkClick={() => setSidebarOpen(false)} />
+
+        <main className="admin-content">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}

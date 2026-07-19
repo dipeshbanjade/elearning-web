@@ -1,0 +1,453 @@
+// ============================================================
+// Shared tokens (keep in sync with auth.scss)
+// ============================================================
+$primary:       #4F46E5;
+$primary-dark:  #3730A3;
+$primary-light: #EEF2FF;
+$bg:            #F1F5F9;
+$text:          #1E293B;
+$text-muted:    #64748B;
+$border:        #E2E8F0;
+$white:         #FFFFFF;
+$error:         #EF4444;
+
+// ============================================================
+// MASTER LAYOUT SHELL
+// ============================================================
+.app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: $bg;
+}
+
+// ============================================================
+// NAVBAR
+// ============================================================
+.app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: $white;
+  border-bottom: 1px solid $border;
+  height: 62px;
+  padding: 0 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .nav-logo {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: $primary;
+    letter-spacing: -.3px;
+    text-decoration: none;
+  }
+
+  // Hamburger — only shown on small screens (see media query below).
+  // Set the icon image ourselves since we're not inside a real .navbar,
+  // which is where Bootstrap normally defines this variable.
+  .admin-toggler {
+    display: none;
+    --bs-navbar-toggler-icon-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(30, 41, 59, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+  }
+
+  // Right side wrapper — needed for dropdown positioning
+  .nav-right { position: relative; }
+
+  // Avatar trigger button
+  .nav-avatar-btn {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    background: none;
+    border: 1.5px solid $border;
+    border-radius: 50px;
+    padding: .28rem .75rem .28rem .38rem;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+
+    &:hover {
+      border-color: $primary;
+      background: $primary-light;
+    }
+
+    .avatar-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: $primary;
+      color: $white;
+      font-size: .82rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .avatar-name {
+      font-size: .85rem;
+      font-weight: 600;
+      color: $text;
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .avatar-chevron {
+      font-size: .62rem;
+      color: $text-muted;
+      transition: transform .2s;
+      margin-left: .15rem;
+
+      &.open { transform: rotate(180deg); }
+    }
+  }
+
+  // Dropdown panel
+  .nav-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 230px;
+    background: $white;
+    border: 1px solid $border;
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .1);
+    overflow: hidden;
+    z-index: 200;
+    animation: ddIn .14s ease;
+
+    @keyframes ddIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    // User info header
+    .dd-user {
+      padding: .9rem 1rem;
+      background: $bg;
+      border-bottom: 1px solid $border;
+
+      .dd-user-name {
+        font-size: .9rem;
+        font-weight: 700;
+        color: $text;
+        margin-bottom: .12rem;
+      }
+
+      .dd-user-role {
+        font-size: .72rem;
+        font-weight: 600;
+        letter-spacing: .04em;
+        color: $primary;
+        text-transform: capitalize;
+        background: $primary-light;
+        display: inline-block;
+        padding: .1rem .5rem;
+        border-radius: 20px;
+      }
+    }
+
+    // Menu list
+    .dd-menu { padding: .35rem 0; }
+
+    .dd-item {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      width: 100%;
+      padding: .62rem 1rem;
+      background: none;
+      border: none;
+      text-decoration: none;
+      font-size: .875rem;
+      font-weight: 500;
+      color: $text;
+      cursor: pointer;
+      text-align: left;
+      transition: background .12s;
+
+      .dd-icon {
+        font-size: 1rem;
+        width: 20px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      &:hover { background: $bg; }
+
+      &.danger {
+        color: $error;
+        &:hover { background: #FEF2F2; }
+      }
+    }
+
+    .dd-divider {
+      height: 1px;
+      background: $border;
+      margin: .35rem 0;
+    }
+  }
+}
+
+// ============================================================
+// PAGE BODY
+// ============================================================
+.app-body {
+  flex: 1;
+  padding: 2rem 1.75rem;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+// ============================================================
+// DASHBOARD — SUBJECT CARDS
+// ============================================================
+.subject-section {
+  .section-greeting {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: $text;
+    letter-spacing: -.4px;
+    margin-bottom: .3rem;
+  }
+
+  .section-sub {
+    font-size: .92rem;
+    color: $text-muted;
+    margin-bottom: 2rem;
+  }
+
+  .subject-btn-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: .9rem;
+
+    @media (min-width: 576px) { grid-template-columns: repeat(3, 1fr); }
+    @media (min-width: 992px) { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  .subject-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .65rem;
+    padding: 1.6rem 1rem;
+    background: $white;
+    border: 1.5px solid $border;
+    border-radius: 16px;
+    cursor: pointer;
+    color: $text;
+    font-size: .9rem;
+    font-weight: 700;
+    text-align: center;
+    transition: all .18s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+
+    .btn-icon {
+      font-size: 2.2rem;
+      line-height: 1;
+    }
+
+    &:hover {
+      border-color: $primary;
+      background: $primary-light;
+      color: $primary;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 22px rgba($primary, .14);
+    }
+
+    &:active { transform: translateY(0); }
+
+    &.selected {
+      border-color: $primary;
+      background: $primary-light;
+      color: $primary;
+      box-shadow: 0 8px 22px rgba($primary, .14);
+    }
+
+    &:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+
+  .subject-continue-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2rem auto 0;
+    padding: .8rem 2.2rem;
+    background: $primary;
+    color: $white;
+    border: none;
+    border-radius: 12px;
+    font-size: .9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s;
+
+    &:hover:not(:disabled) { background: $primary-dark; }
+
+    &:disabled {
+      background: $border;
+      color: $text-muted;
+      cursor: not-allowed;
+    }
+
+    // Saving is a disabled state too, but it should still read as "in progress"
+    // rather than "unavailable" — keep the primary color so the spinner shows up.
+    &.saving:disabled {
+      background: $primary;
+      color: $white;
+      cursor: wait;
+    }
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, .4);
+    border-top-color: $white;
+    border-radius: 50%;
+    margin-right: .55rem;
+    animation: subject-spin .7s linear infinite;
+  }
+
+  @keyframes subject-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .subject-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #94A3B8;
+    font-size: .9rem;
+    padding: 3rem 0;
+  }
+}
+
+// ============================================================
+// ADMIN SHELL — sidebar + routed content
+// ============================================================
+.admin-shell {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+}
+
+.admin-sidebar {
+  position: sticky;
+  top: 62px; // app-nav height
+  height: calc(100vh - 62px);
+  width: 250px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  transition: transform .2s ease;
+}
+
+// nav links inside the sidebar — Bootstrap gives us .nav / .nav-link,
+// this just adds the active/hover color and icon spacing
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  color: $text;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: .6rem .75rem;
+
+  &:hover { background: $bg; }
+
+  &.active {
+    background: $primary-light;
+    color: $primary;
+  }
+}
+
+.admin-content {
+  flex: 1;
+  min-width: 0;
+  padding: 2rem 1.75rem;
+}
+
+.page-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: $text;
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  padding-bottom: .6rem;
+  border-bottom: 3px solid $primary;
+}
+
+.sidebar-backdrop {
+  display: none;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+// ── Below tablet width, the sidebar becomes an off-canvas drawer ──
+@media (max-width: 900px) {
+  .app-nav .admin-toggler { display: block; }
+
+  .admin-sidebar {
+    position: fixed;
+    top: 62px;
+    left: 0;
+    z-index: 250;
+    width: 260px;
+    max-width: 80vw;
+    transform: translateX(-100%);
+
+    &.open { transform: translateX(0); }
+  }
+
+  .sidebar-backdrop { display: block; z-index: 200; }
+
+  .admin-content { padding: 1.5rem 1rem; }
+}
+
+// ============================================================
+// FOOTER
+// ============================================================
+.app-footer {
+  border-top: 1px solid $border;
+  background: $white;
+  padding: .9rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .4rem 1.25rem;
+
+  a {
+    font-size: .77rem;
+    color: $text-muted;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color .12s;
+
+    &:hover { color: $primary; }
+  }
+
+  .footer-sep {
+    font-size: .5rem;
+    color: $border;
+    line-height: 1;
+  }
+
+  .footer-copy {
+    width: 100%;
+    text-align: center;
+    font-size: .73rem;
+    color: #CBD5E1;
+    margin-top: .2rem;
+  }
+}

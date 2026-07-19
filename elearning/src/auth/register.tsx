@@ -1,181 +1,218 @@
-import React from "react";
-import { checkEmail, checkPassword } from "../helper/helper";
+import { useState } from "react";
+import {
+  checkEmail,
+  checkPassword,
+  storeAppDataInLocalstorage,
+  setStoredUser,
+} from "../helper/helper";
 import LoginApi from "../api/login";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function Register() {
-  const [formData, setFormData] = React.useState({
+  const [formData, setFormData] = useState({
+    fullname: "",
     username: "",
     password: "",
-    sector: "",
+    catId: "",
     confirmPassword: "",
   });
 
-  const [error, setError] = React.useState({
+  const [error, setError] = useState({
+    fullnameErr: "",
     usernameErr: "",
     passwordErr: "",
     confirmPasswordErr: "",
-    sectorError: "",
+    catIdError: "",
   });
 
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const [categories, setCategories] = useState<any[]>([]);
+  const navigate = useNavigate();
 
-    setFormData((prev) => ({ ...prev, username: value }));
+  useEffect(() => {
+    storeAppDataInLocalstorage()
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
+      .catch(() => setCategories([]));
+  }, []);
 
-    setError((prev) => ({
-      ...prev,
-      usernameErr: checkEmail(value) ? "" : "Invalid email format",
-    }));
-  };
+  const set = (field: string, value: string) =>
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-
-    setFormData((prev) => ({ ...prev, password: value }));
-
-    setError((prev) => ({
-      ...prev,
-      passwordErr: checkPassword(value)
-        ? ""
-        : "Password must be at least 6 characters long",
-    }));
-  };
-
-  const handleConfirmPasswordChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const value = e.target.value;
-
-    setFormData((prev) => ({ ...prev, confirmPassword: value }));
-
-    setError((prev) => ({
-      ...prev,
-      confirmPasswordErr:
-        value === formData.password ? "" : "Passwords do not match",
-    }));
-  };
-
-  const handleChangeSector = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      sector: value,
-    }));
-
-    if (!formData.sector) {
-      setError((prev) => ({
-        ...prev,
-        sectorError: "Sector field is required",
-      }));
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
-    const checkVal = checkValidation();
-
-    if (!checkVal) {
-      return;
+    if (!validate()) return;
+    try {
+      const register = await LoginApi.userRegister({
+        username: formData.username,
+        password: formData.password,
+        catId: formData.catId,
+        confirmPassword: formData.confirmPassword,
+        fullname: formData.fullname,
+      });
+      if (register?.loginUser) {
+        setStoredUser(register.loginUser);
+        if (register.loginUser.loginStep === 1) navigate("/login-step");
+      }
+    } catch (err) {
+      console.error("Registration failed", err);
     }
-    const data = {
-      username: formData.username,
-      password: formData.password,
-      sector: formData.sector,
-    };
-    const register = LoginApi.userRegister(data);
   };
 
-  const checkValidation = () => {
-    let isValid = true;
-    if (!checkEmail(formData.username)) {
-      setError((prev) => ({
-        ...prev,
-        usernameErr: "Email id is required",
-      }));
-      isValid = false;
-    }
-
-    if (!checkPassword(formData.password)) {
-      setError((prev) => ({
-        ...prev,
-        passwordErr: "Password must be at least 6 characters long",
-      }));
-
-      isValid = false;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError((prev) => ({
-        ...prev,
-        confirmPasswordErr: "Password doesnot match",
-      }));
-      isValid = false;
-    }
-
-    return isValid;
-  };
-
-  const resetErrorMessage = () => {
-    setError({
+  const validate = () => {
+    const next = {
+      fullnameErr: "",
       usernameErr: "",
       passwordErr: "",
       confirmPasswordErr: "",
-      sectorError: "",
-    });
+      catIdError: "",
+    };
+    let ok = true;
+
+    if (formData.fullname.trim().length < 3) {
+      next.fullnameErr = "Full name must be at least 3 characters";
+      ok = false;
+    }
+    if (!checkEmail(formData.username)) {
+      next.usernameErr = "Enter a valid email address";
+      ok = false;
+    }
+    if (!checkPassword(formData.password)) {
+      next.passwordErr = "Password must be 6–16 characters";
+      ok = false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      next.confirmPasswordErr = "Passwords do not match";
+      ok = false;
+    }
+    if (!formData.catId) {
+      next.catIdError = "Please select a category";
+      ok = false;
+    }
+
+    setError(next);
+    return ok;
   };
 
   return (
-    <div className="container mt-5">
-      <div className="col col-4 mx-auto">
-        <h2 className="mb-5">eLearning</h2>
+    <div className="auth-page">
+      <div className="auth-brand">
+        <div className="brand-inner">
+          <div className="brand-logo">
+            eLearning <span className="logo-badge">Pro</span>
+          </div>
+          <h2 className="brand-headline">
+            Start your learning<br />journey today.
+          </h2>
+          <p className="brand-sub">
+            Join thousands of learners already growing their skills with
+            expert-led courses and hands-on projects.
+          </p>
+          <ul className="brand-features">
+            <li><span className="check-icon">✓</span>Free to get started</li>
+            <li><span className="check-icon">✓</span>Personalised learning path</li>
+            <li><span className="check-icon">✓</span>Track your progress</li>
+          </ul>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            className="form-control mb-2"
-            value={formData.username}
-            onChange={handleUsernameChange}
-            placeholder="Email"
-          />
-          {error.usernameErr && (
-            <div className="text-danger">{error.usernameErr}</div>
-          )}
+      <div className="auth-form-panel">
+        <div className="auth-card">
+          <div className="auth-header">
+            <div className="auth-logo-mobile">eLearning</div>
+            <h1>Create account</h1>
+            <p>It's free and only takes a minute</p>
+          </div>
 
-          <input
-            type="password"
-            className="form-control mb-2"
-            value={formData.password}
-            onChange={handlePasswordChange}
-            placeholder="Password"
-          />
-          {error.passwordErr && (
-            <div className="text-danger">{error.passwordErr}</div>
-          )}
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="auth-field">
+              <label htmlFor="fullname">Full name</label>
+              <input
+                id="fullname"
+                type="text"
+                placeholder="Jane Doe"
+                value={formData.fullname}
+                onChange={(e) => set("fullname", e.target.value)}
+                className={error.fullnameErr ? "is-error" : ""}
+              />
+              {error.fullnameErr && (
+                <span className="field-error">⚠ {error.fullnameErr}</span>
+              )}
+            </div>
 
-          <input
-            type="password"
-            className="form-control mb-2"
-            value={formData.confirmPassword}
-            onChange={handleConfirmPasswordChange}
-            placeholder="Confirm Password"
-          />
-          {error.confirmPasswordErr && (
-            <div className="text-danger">{error.confirmPasswordErr}</div>
-          )}
+            <div className="auth-field">
+              <label htmlFor="username">Email address</label>
+              <input
+                id="username"
+                type="email"
+                placeholder="you@example.com"
+                value={formData.username}
+                onChange={(e) => set("username", e.target.value)}
+                className={error.usernameErr ? "is-error" : ""}
+              />
+              {error.usernameErr && (
+                <span className="field-error">⚠ {error.usernameErr}</span>
+              )}
+            </div>
 
-          <select
-            className="form-control mb-2"
-            value={formData.sector}
-            onChange={handleChangeSector}
-          >
-            <option value="">Select option</option>
-            <option value="react">React</option>
-            <option value="vue">Vue</option>
-            <option value="angular">Angular</option>
-          </select>
+            <div className="auth-row">
+              <div className="auth-field">
+                <label htmlFor="password">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => set("password", e.target.value)}
+                  className={error.passwordErr ? "is-error" : ""}
+                />
+                {error.passwordErr && (
+                  <span className="field-error">⚠ {error.passwordErr}</span>
+                )}
+              </div>
 
-          <button className="btn btn-primary">Register</button>
-        </form>
+              <div className="auth-field">
+                <label htmlFor="confirmPassword">Confirm password</label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.confirmPassword}
+                  onChange={(e) => set("confirmPassword", e.target.value)}
+                  className={error.confirmPasswordErr ? "is-error" : ""}
+                />
+                {error.confirmPasswordErr && (
+                  <span className="field-error">⚠ {error.confirmPasswordErr}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="catId">Category</label>
+              <select
+                id="catId"
+                value={formData.catId}
+                onChange={(e) => set("catId", e.target.value)}
+                className={error.catIdError ? "is-error" : ""}
+              >
+                <option value="">Select a category…</option>
+                {categories.map((cat: any) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+              {error.catIdError && (
+                <span className="field-error">⚠ {error.catIdError}</span>
+              )}
+            </div>
+
+            <button type="submit" className="auth-btn">Create account</button>
+          </form>
+
+          <div className="auth-switch">
+            Already have an account?<a href="/">Sign in</a>
+          </div>
+        </div>
       </div>
     </div>
   );

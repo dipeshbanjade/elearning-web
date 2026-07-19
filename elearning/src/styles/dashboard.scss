@@ -1,0 +1,1107 @@
+// ============================================================
+// Shared tokens (keep in sync with layout.scss / auth.scss)
+// ============================================================
+$primary:       #4F46E5;
+$primary-light: #EEF2FF;
+$bg:            #F1F5F9;
+$text:          #1E293B;
+$text-muted:    #64748B;
+$border:        #E2E8F0;
+$white:         #FFFFFF;
+$error:         #EF4444;
+$success:       #10B981;
+
+// ============================================================
+// PAGE HEADER
+// ============================================================
+.dashboard-page {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// Opens the chapter list drawer on mobile — hidden entirely on desktop,
+// where the chapter list is just always visible in its own column.
+.mobile-sidebar-toggle {
+  display: none;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: 1rem;
+  padding: .6rem 1rem;
+  border: 1px solid $border;
+  border-radius: 10px;
+  background: $white;
+  color: $text;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  @media (max-width: 1100px) {
+    display: inline-flex;
+  }
+}
+
+.mobile-toggle-icon {
+  font-size: 1rem;
+}
+
+// Always mounted (not conditionally rendered) so its fade stays in sync
+// with the drawer's own slide transition below — otherwise the dimming
+// vanishes instantly while the panel is still animating off-screen.
+.sidebar-backdrop {
+  display: none;
+
+  @media (max-width: 1100px) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .5);
+    z-index: 190;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+
+    &.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+}
+
+.subject-switcher {
+  width: 100%;
+  flex-shrink: 0;
+
+  .subject-option {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  .subject-option-icon {
+    font-size: 1.05rem;
+  }
+}
+
+// ============================================================
+// THREE COLUMN GRID
+// ============================================================
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 300px;
+  gap: 1.25rem;
+  align-items: stretch;
+  height: calc(100vh - 150px);
+  min-height: 520px;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+// Middle/right each scroll on their own instead of growing the page —
+// that way the columns stay lined up next to each other while you read.
+// The scrollbar itself is hidden for a cleaner look; the content still scrolls fine.
+.content-panel,
+.right-panel {
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar { display: none; }
+
+  @media (max-width: 1100px) {
+    height: auto;
+    overflow-y: visible;
+  }
+}
+
+// ============================================================
+// LEFT — SUBJECT SWITCHER + CHAPTER SIDEBAR
+// ============================================================
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: .9rem;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar { display: none; }
+
+  // Below the breakpoint it stops being a grid column and becomes an
+  // off-canvas drawer that slides in from the left over everything else.
+  @media (max-width: 1100px) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    width: 300px;
+    max-width: 85vw;
+    height: 100vh;
+    padding: 1.1rem;
+    background: $white;
+    box-shadow: 8px 0 28px rgba(0, 0, 0, .18);
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+
+    &.mobile-open {
+      transform: translateX(0);
+    }
+  }
+}
+
+.left-panel-mobile-head {
+  display: none;
+
+  @media (max-width: 1100px) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: .85rem;
+    margin-bottom: .2rem;
+    border-bottom: 1px solid $border;
+  }
+}
+
+.left-panel-mobile-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: $text;
+}
+
+.left-panel-close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid $border;
+  background: $bg;
+  color: $text-muted;
+  font-size: .85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &:hover {
+    border-color: $primary;
+    color: $primary;
+  }
+}
+
+.chapter-sidebar {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 1.1rem;
+}
+
+.sidebar-heading {
+  font-size: .95rem;
+  font-weight: 800;
+  color: $text;
+  margin-bottom: .85rem;
+}
+
+.chapter-list {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.chapter-item {
+  border: 1px solid $border;
+  border-radius: 12px;
+  overflow: hidden;
+
+  &.open { border-color: $primary; }
+}
+
+.chapter-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  background: $bg;
+  border: none;
+  padding: .65rem .8rem;
+  font-size: .85rem;
+  font-weight: 700;
+  color: $text;
+  cursor: pointer;
+  text-align: left;
+}
+
+.chapter-caret {
+  font-size: .7rem;
+  color: $text-muted;
+  transition: transform .15s;
+
+  &.open { transform: rotate(90deg); }
+}
+
+.chapter-title { flex: 1; }
+
+.chapter-count {
+  font-size: .68rem;
+  font-weight: 700;
+  color: $primary;
+  background: $primary-light;
+  border-radius: 20px;
+  padding: .1rem .45rem;
+}
+
+.topic-list {
+  display: flex;
+  flex-direction: column;
+  padding: .3rem;
+}
+
+.topic-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: .55rem .6rem;
+  font-size: .8rem;
+  color: $text-muted;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover { background: $bg; }
+
+  &.active {
+    background: $primary-light;
+    color: $primary;
+    font-weight: 700;
+
+    .topic-dot { background: $primary; }
+  }
+}
+
+.topic-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: $border;
+  flex-shrink: 0;
+}
+
+.topic-name { flex: 1; }
+
+.topic-duration {
+  font-size: .68rem;
+  color: $text-muted;
+}
+
+// ============================================================
+// MIDDLE — CONTENT PANEL
+// ============================================================
+.content-panel {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 1.1rem;
+  box-sizing: border-box;
+}
+
+.content-panel-head {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+// Shown whenever the middle column isn't the lesson itself (progress,
+// assignment, notice, "view all" lists) — takes the learner back to
+// whichever topic they were last studying.
+.middle-close-btn {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin-bottom: 1.1rem;
+  border: 1px solid $border;
+  background: $bg;
+  color: $text-muted;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .45rem .85rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+
+  &:hover {
+    border-color: $primary;
+    color: $primary;
+    background: $primary-light;
+  }
+}
+
+.middle-close-icon {
+  font-size: .7rem;
+}
+
+.content-tabs {
+  display: flex;
+  gap: .3rem;
+  background: $bg;
+  border-radius: 10px;
+  padding: .25rem;
+}
+
+.content-tab {
+  border: none;
+  background: none;
+  padding: .45rem 1.1rem;
+  border-radius: 8px;
+  font-size: .82rem;
+  font-weight: 700;
+  color: $text-muted;
+  cursor: pointer;
+
+  &.active {
+    background: $white;
+    color: $primary;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+  }
+}
+
+// ---- Video ----
+.video-player-el {
+  width: 100%;
+  max-height: 420px;
+  border-radius: 12px;
+  background: #000;
+  display: block;
+}
+
+.video-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-top: .8rem;
+}
+
+.video-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: $text;
+}
+
+.video-duration {
+  font-size: .78rem;
+  color: $text-muted;
+  flex-shrink: 0;
+}
+
+.video-description {
+  font-size: .85rem;
+  color: $text-muted;
+  margin-top: .3rem;
+  line-height: 1.5;
+}
+
+// ---- Ask a question ----
+.ask-question-box {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $border;
+}
+
+.ask-heading, .discussion-heading {
+  font-size: .95rem;
+  font-weight: 800;
+  color: $text;
+  margin-bottom: .7rem;
+}
+
+.ask-input-row {
+  display: flex;
+  gap: .6rem;
+  align-items: flex-start;
+}
+
+.ask-textarea {
+  flex: 1;
+  min-height: 64px;
+  resize: vertical;
+  border: 1.5px solid $border;
+  border-radius: 10px;
+  padding: .6rem .75rem;
+  font-size: .85rem;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}
+
+.ask-submit-btn, .discussion-post-btn {
+  border: none;
+  background: $primary;
+  color: $white;
+  font-weight: 700;
+  font-size: .82rem;
+  padding: .6rem 1.1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:disabled {
+    background: $border;
+    color: $text-muted;
+    cursor: not-allowed;
+  }
+}
+
+.ask-empty, .discussion-empty, .practice-empty, .side-panel-empty {
+  font-size: .82rem;
+  color: $text-muted;
+  margin-top: .8rem;
+}
+
+.ask-list {
+  list-style: none;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+}
+
+.ask-item {
+  background: $bg;
+  border-radius: 10px;
+  padding: .7rem .85rem;
+}
+
+.ask-item-question {
+  font-size: .84rem;
+  color: $text;
+
+  .ask-item-author {
+    font-weight: 700;
+    margin-right: .4rem;
+  }
+}
+
+.ask-item-answer {
+  margin-top: .4rem;
+  font-size: .8rem;
+  color: $text-muted;
+  padding-left: .1rem;
+
+  .ask-item-answer-tag {
+    font-weight: 700;
+    color: $success;
+    margin-right: .4rem;
+  }
+}
+
+// ---- Discussion board ----
+.discussion-board {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $border;
+}
+
+.discussion-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+  margin-bottom: 1rem;
+}
+
+.discussion-item {
+  display: flex;
+  gap: .6rem;
+}
+
+.discussion-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: $primary-light;
+  color: $primary;
+  font-weight: 800;
+  font-size: .82rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.discussion-item.teacher .discussion-avatar {
+  background: $primary;
+  color: $white;
+}
+
+.discussion-author-row {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.discussion-author {
+  font-size: .83rem;
+  font-weight: 700;
+  color: $text;
+}
+
+.discussion-badge {
+  font-size: .65rem;
+  font-weight: 700;
+  color: $primary;
+  background: $primary-light;
+  border-radius: 20px;
+  padding: .05rem .4rem;
+}
+
+.discussion-text {
+  font-size: .84rem;
+  color: $text-muted;
+  margin-top: .15rem;
+  line-height: 1.5;
+}
+
+.discussion-input-row {
+  display: flex;
+  gap: .6rem;
+}
+
+.discussion-input {
+  flex: 1;
+  border: 1.5px solid $border;
+  border-radius: 10px;
+  padding: .6rem .75rem;
+  font-size: .85rem;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}
+
+// ---- Practice ----
+.practice-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: $text;
+  margin-bottom: 1rem;
+}
+
+.practice-card {
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: .9rem;
+}
+
+.practice-question {
+  font-size: .88rem;
+  font-weight: 700;
+  color: $text;
+  margin-bottom: .8rem;
+}
+
+.practice-number { color: $primary; margin-right: .3rem; }
+
+.practice-options {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.practice-option {
+  text-align: left;
+  border: 1.5px solid $border;
+  background: $white;
+  border-radius: 10px;
+  padding: .55rem .8rem;
+  font-size: .83rem;
+  color: $text;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { border-color: $primary; }
+
+  &.correct {
+    border-color: $success;
+    background: rgba($success, .08);
+    font-weight: 700;
+  }
+
+  &.wrong {
+    border-color: $error;
+    background: rgba($error, .08);
+  }
+
+  &:disabled { cursor: default; }
+}
+
+.practice-explanation {
+  margin-top: .7rem;
+  font-size: .8rem;
+  color: $text-muted;
+  background: $bg;
+  border-radius: 8px;
+  padding: .6rem .75rem;
+}
+
+// ============================================================
+// RIGHT — ASSIGNMENT & NOTICE
+// ============================================================
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.assignment-panel, .notice-panel {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 1.1rem;
+}
+
+.side-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .85rem;
+}
+
+.side-panel-heading {
+  font-size: .95rem;
+  font-weight: 800;
+  color: $text;
+}
+
+.view-all-btn {
+  border: none;
+  background: none;
+  color: $primary;
+  font-size: .74rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+
+  &:hover { text-decoration: underline; }
+}
+
+.assignment-list, .notice-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+}
+
+.assignment-item, .notice-item {
+  display: block;
+  width: 100%;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: .75rem .85rem;
+  background: $white;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+
+  &:hover {
+    border-color: $primary;
+    background: $primary-light;
+  }
+}
+
+.assignment-item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.assignment-title, .notice-title {
+  font-size: .85rem;
+  font-weight: 700;
+  color: $text;
+}
+
+.assignment-status {
+  font-size: .65rem;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: .1rem .5rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  &.pending { background: #FEF3C7; color: #92400E; }
+  &.in-progress { background: $primary-light; color: $primary; }
+  &.done { background: rgba($success, .12); color: $success; }
+}
+
+.assignment-chapter {
+  font-size: .72rem;
+  font-weight: 600;
+  color: $primary;
+  margin-top: .3rem;
+}
+
+.assignment-item-bottom, .notice-bottom {
+  display: flex;
+  justify-content: space-between;
+  margin-top: .6rem;
+  font-size: .7rem;
+  color: #94A3B8;
+}
+
+// ============================================================
+// RIGHT — MY PROGRESS (mini widget)
+// ============================================================
+.progress-panel {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 1.1rem;
+}
+
+.progress-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .9rem;
+}
+
+.progress-view-btn {
+  border: none;
+  background: none;
+  color: $primary;
+  font-size: .76rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover { text-decoration: underline; }
+}
+
+.progress-mini-list {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.progress-mini-item {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+
+.progress-mini-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: .76rem;
+  font-weight: 600;
+  color: $text-muted;
+}
+
+.progress-bar-track {
+  height: 6px;
+  border-radius: 20px;
+  background: $bg;
+  overflow: hidden;
+
+  &.lg { height: 9px; }
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 20px;
+  background: $primary;
+}
+
+// ============================================================
+// MIDDLE — MY PROGRESS (full detail view)
+// ============================================================
+.progress-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  margin-top: 1.25rem;
+}
+
+.progress-detail-item { display: flex; flex-direction: column; gap: .5rem; }
+
+.progress-detail-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.progress-detail-label {
+  font-size: .9rem;
+  font-weight: 700;
+  color: $text;
+}
+
+.progress-detail-value {
+  font-size: .9rem;
+  font-weight: 800;
+  color: $primary;
+}
+
+.progress-detail-note {
+  font-size: .8rem;
+  color: $text-muted;
+}
+
+// ============================================================
+// MIDDLE — ASSIGNMENT / NOTICE DETAIL VIEW
+// ============================================================
+.detail-view-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.detail-view-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: $text;
+  letter-spacing: -.3px;
+}
+
+.detail-view-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem 1rem;
+  margin: .9rem 0 1.25rem;
+  font-size: .8rem;
+  font-weight: 600;
+  color: $text-muted;
+}
+
+.detail-view-body {
+  font-size: .9rem;
+  color: $text;
+  line-height: 1.7;
+}
+
+// ---- Assignment submission ----
+.assignment-submit-box {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $border;
+}
+
+.assignment-answer-textarea {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  border: 1.5px solid $border;
+  border-radius: 10px;
+  padding: .75rem .9rem;
+  font-size: .87rem;
+  font-family: inherit;
+  line-height: 1.6;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}
+
+.assignment-submit-btn {
+  margin-top: .8rem;
+  border: none;
+  background: $primary;
+  color: $white;
+  font-weight: 700;
+  font-size: .85rem;
+  padding: .65rem 1.4rem;
+  border-radius: 10px;
+  cursor: pointer;
+
+  &:disabled {
+    background: $border;
+    color: $text-muted;
+    cursor: not-allowed;
+  }
+}
+
+.assignment-submitted {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-top: 1.5rem;
+  padding: .9rem 1rem;
+  background: rgba($success, .1);
+  border: 1px solid rgba($success, .3);
+  border-radius: 12px;
+  color: $success;
+  font-size: .87rem;
+  font-weight: 600;
+}
+
+.assignment-submitted-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: $success;
+  color: $white;
+  font-size: .75rem;
+  flex-shrink: 0;
+}
+
+// ============================================================
+// MIDDLE — "VIEW ALL" ASSIGNMENT / NOTICE LIST
+// ============================================================
+.list-view-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+  margin-top: 1.25rem;
+}
+
+.list-view-item {
+  display: block;
+  width: 100%;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: .85rem 1rem;
+  background: $white;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+
+  &:hover {
+    border-color: $primary;
+    background: $primary-light;
+  }
+}
+
+.list-view-item-desc {
+  font-size: .82rem;
+  color: $text-muted;
+  margin-top: .4rem;
+  line-height: 1.5;
+}
+
+// ============================================================
+// MIDDLE — NOTEBOOK TAB (teacher-uploaded PDF)
+// ============================================================
+.notebook-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .9rem;
+}
+
+.notebook-title {
+  font-size: .95rem;
+  font-weight: 800;
+  color: $text;
+}
+
+.notebook-meta {
+  display: block;
+  font-size: .76rem;
+  color: $text-muted;
+  margin-top: .2rem;
+}
+
+.notebook-open-link {
+  flex-shrink: 0;
+  font-size: .8rem;
+  font-weight: 700;
+  color: $primary;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover { text-decoration: underline; }
+}
+
+.notebook-pdf-frame {
+  width: 100%;
+  height: 70vh;
+  min-height: 420px;
+  border: 1px solid $border;
+  border-radius: 12px;
+}
+
+// ============================================================
+// TEACHER — TAG FOLDERS + TOPICS
+// ============================================================
+.tag-folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: .9rem;
+  margin-bottom: 1.5rem;
+}
+
+.tag-folder-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  padding: 1.3rem 1rem;
+  background: $white;
+  border: 1.5px solid $border;
+  border-radius: 14px;
+  cursor: pointer;
+  color: $text;
+  font-size: .85rem;
+  font-weight: 700;
+  text-align: center;
+  transition: all .15s ease;
+
+  .tag-folder-icon { font-size: 2rem; }
+
+  .tag-folder-unit {
+    font-size: .72rem;
+    font-weight: 500;
+    color: $text-muted;
+  }
+
+  .tag-folder-count {
+    font-size: .68rem;
+    font-weight: 700;
+    color: $primary;
+    background: $primary-light;
+    border-radius: 20px;
+    padding: .1rem .5rem;
+  }
+
+  &:hover {
+    border-color: $primary;
+    background: $primary-light;
+  }
+
+  &.active {
+    border-color: $primary;
+    background: $primary-light;
+    color: $primary;
+  }
+}
+
+.tag-folder-card.add-new {
+  color: $text-muted;
+  border-style: dashed;
+
+  &:hover { color: $primary; }
+}
+
