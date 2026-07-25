@@ -1,14 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import type { ChangeEvent, SubmitEvent } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { checkValidation } from "../../superadmin/validation";
 import superAdminRoute from "../../superadmin/superAdminRoute";
+import teacherRoute, { type Chapter } from "../teacherRoute";
 import Loading from "../../../helper/Loading";
-import {
-  seedDemoTags,
-  newId,
-  type Tag,
-} from "../../../data/mockTeacherContent";
+import RightPanel from "../../../component/rightPanel";
 
 interface SubSubCategory {
   _id: string;
@@ -21,59 +18,68 @@ interface SubCategory {
   name: string;
 }
 
-const emptyTopicForm = {
-  learning: "",
-  practiceQuestion: "",
-  practiceAnswer: "",
-  assignmentTitle: "",
-  assignmentDescription: "",
-  assignmentDueDate: "",
-  noteBookLink: "",
+const emptyChapterForm = {
+  chapterTitle: "",
+  chapterDesc: "",
+  chapterThumbnail: "",
+  orderColumn: "",
 };
 
 export default function TeacherContent() {
   const { id: subSubCategoryId } = useParams<{ id: string }>();
   if (!subSubCategoryId) return null;
 
-  // Remount the body whenever the subsubcategory changes so all its local
-  // state (tags, selected folder, open forms) resets on its own instead of
-  // needing an effect to do it.
-  return <TeacherContentBody key={subSubCategoryId} subSubCategoryId={subSubCategoryId} />;
+  // Remount whenever the subsubcategory changes so all local state
+  // (chapters, open form) resets on its own instead of needing an effect.
+  return (
+    <TeacherContentBody
+      key={subSubCategoryId}
+      subSubCategoryId={subSubCategoryId}
+    />
+  );
 }
 
-function TeacherContentBody({ subSubCategoryId }: { subSubCategoryId: string }) {
+function TeacherContentBody({
+  subSubCategoryId,
+}: {
+  subSubCategoryId: string;
+}) {
+  const navigate = useNavigate();
   const [subSubCategory, setSubSubCategory] = useState<SubSubCategory | null>(
     null,
   );
   const [subCategory, setSubCategory] = useState<SubCategory | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [tags, setTags] = useState<Tag[]>(() => seedDemoTags(subSubCategoryId));
-  const [selectedTagId, setSelectedTagId] = useState("");
+  const [chapters, setChapters] = useState<Chapter[]>([]);
 
-  const [showTagForm, setShowTagForm] = useState(false);
-  const [tagName, setTagName] = useState("");
-  const [tagUnit, setTagUnit] = useState("");
-  const [tagErrorMsg, setTagErrorMsg] = useState("");
+  const [showChapterForm, setShowChapterForm] = useState(false);
+  const [chapterForm, setChapterForm] = useState(emptyChapterForm);
+  const [titleErrorMsg, setTitleErrorMsg] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [showTopicForm, setShowTopicForm] = useState(false);
-  const [topicForm, setTopicForm] = useState(emptyTopicForm);
-  const [learningErrorMsg, setLearningErrorMsg] = useState("");
-
-  const loadCategoryInfo = useCallback(async () => {
+  const loadPageData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await superAdminRoute.getCategoryTree();
-      const ssc = (res?.subSubCategories ?? []).find(
+      const [subCatRes, subSubCatRes, chapterRes] = await Promise.all([
+        superAdminRoute.getAllSubCategories(1, 1000),
+        superAdminRoute.getAllSubSubCategories(1, 1000),
+        teacherRoute.fetchChapters(subSubCategoryId),
+      ]);
+
+      const ssc = (subSubCatRes?.data ?? []).find(
         (c: SubSubCategory) => c._id === subSubCategoryId,
       );
       setSubSubCategory(ssc ?? null);
       if (ssc) {
-        const sc = (res?.subCategories ?? []).find(
+        const sc = (subCatRes?.data ?? []).find(
           (c: SubCategory) => c._id === ssc.subCategoryId,
         );
         setSubCategory(sc ?? null);
       }
+
+      setChapters(chapterRes?.data ?? []);
     } catch (error) {
       console.error(error);
     } finally {
@@ -84,122 +90,84 @@ function TeacherContentBody({ subSubCategoryId }: { subSubCategoryId: string }) 
   useEffect(() => {
     let ignore = false;
     (async () => {
-      if (!ignore) await loadCategoryInfo();
+      if (!ignore) await loadPageData();
     })();
     return () => {
       ignore = true;
     };
-  }, [loadCategoryInfo]);
+  }, [loadPageData]);
 
-  const selectedTag = tags.find((t) => t.id === selectedTagId) ?? null;
-
-  const resetTagForm = () => {
-    setTagName("");
-    setTagUnit("");
-    setTagErrorMsg("");
-    setShowTagForm(false);
+  const resetChapterForm = () => {
+    setChapterForm(emptyChapterForm);
+    setTitleErrorMsg("");
+    setEditingId(null);
+    setShowChapterForm(false);
   };
 
-  const handleTagNameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setTagName(e.target.value);
-    setTagErrorMsg(checkValidation("name", e.target.value));
+  const openAddForm = () => {
+    setChapterForm(emptyChapterForm);
+    setTitleErrorMsg("");
+    setEditingId(null);
+    setShowChapterForm(true);
   };
 
-  const handleTagSubmit = (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const error = checkValidation("name", tagName);
-    if (error) {
-      setTagErrorMsg(error);
-      return;
-    }
-
-    const tag: Tag = {
-      id: newId("tag"),
-      name: tagName,
-      unit: tagUnit,
-      topics: [],
-    };
-    setTags((prev) => [...prev, tag]);
-    setSelectedTagId(tag.id);
-    resetTagForm();
+  const handleEdit = (chapter: Chapter) => {
+    setEditingId(chapter._id);
+    setChapterForm({
+      chapterTitle: chapter.chapterTitle,
+      chapterDesc: chapter.chapterDesc ?? "",
+      chapterThumbnail: chapter.chapterThumbnail ?? "",
+      orderColumn:
+        chapter.orderColumn != null ? String(chapter.orderColumn) : "",
+    });
+    setTitleErrorMsg("");
+    setShowChapterForm(true);
   };
 
-  const handleDeleteTag = (id: string) => {
-    setTags((prev) => prev.filter((t) => t.id !== id));
-    if (selectedTagId === id) setSelectedTagId("");
-  };
-
-  const resetTopicForm = () => {
-    setTopicForm(emptyTopicForm);
-    setLearningErrorMsg("");
-    setShowTopicForm(false);
-  };
-
-  const handleTopicFieldChange = (
+  const handleChapterFieldChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
-    setTopicForm((prev) => ({ ...prev, [name]: value }));
-    if (name === "learning") setLearningErrorMsg(checkValidation("name", value));
+    setChapterForm((prev) => ({ ...prev, [name]: value }));
+    if (name === "chapterTitle")
+      setTitleErrorMsg(checkValidation("name", value));
   };
 
-  const handleTopicSubmit = (e: SubmitEvent<HTMLFormElement>) => {
+  const handleChapterSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!selectedTag) return;
-
-    const error = checkValidation("name", topicForm.learning);
+    const error = checkValidation("name", chapterForm.chapterTitle);
     if (error) {
-      setLearningErrorMsg(error);
+      setTitleErrorMsg(error);
       return;
     }
 
-    setTags((prev) =>
-      prev.map((tag) => {
-        if (tag.id !== selectedTag.id) return tag;
-        return {
-          ...tag,
-          topics: [
-            ...tag.topics,
-            {
-              id: newId("topic"),
-              learning: topicForm.learning,
-              practice: topicForm.practiceQuestion
-                ? [
-                    {
-                      id: newId("pq"),
-                      question: topicForm.practiceQuestion,
-                      answer: topicForm.practiceAnswer,
-                    },
-                  ]
-                : [],
-              assignment: topicForm.assignmentTitle
-                ? [
-                    {
-                      id: newId("as"),
-                      title: topicForm.assignmentTitle,
-                      description: topicForm.assignmentDescription,
-                      dueDate: topicForm.assignmentDueDate,
-                    },
-                  ]
-                : [],
-              noteBookLink: topicForm.noteBookLink,
-            },
-          ],
-        };
-      }),
-    );
-    resetTopicForm();
-  };
+    const payload = {
+      subSubCategoryId,
+      chapterTitle: chapterForm.chapterTitle,
+      chapterDesc: chapterForm.chapterDesc,
+      chapterThumbnail: chapterForm.chapterThumbnail,
+      orderColumn: chapterForm.orderColumn
+        ? Number(chapterForm.orderColumn)
+        : undefined,
+    };
 
-  const handleDeleteTopic = (topicId: string) => {
-    if (!selectedTag) return;
-    setTags((prev) =>
-      prev.map((tag) =>
-        tag.id !== selectedTag.id
-          ? tag
-          : { ...tag, topics: tag.topics.filter((t) => t.id !== topicId) },
-      ),
-    );
+    try {
+      setSaving(true);
+      if (editingId) {
+        const res = await teacherRoute.updateChapter(editingId, payload);
+        setChapters((prev) =>
+          prev.map((c) => (c._id === editingId ? res.data : c)),
+        );
+      } else {
+        const res = await teacherRoute.createChapter(payload);
+        setChapters((prev) => [...prev, res.data]);
+      }
+      resetChapterForm();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) return <Loading />;
@@ -223,231 +191,108 @@ function TeacherContentBody({ subSubCategoryId }: { subSubCategoryId: string }) 
       </p>
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h1 className="page-title mb-0">{subSubCategory.name}</h1>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => (showTagForm ? resetTagForm() : setShowTagForm(true))}
-        >
-          {showTagForm ? "Close" : "+ Add Tag"}
+        <button type="button" className="btn btn-primary" onClick={openAddForm}>
+          + Add Chapter
         </button>
       </div>
 
-      {showTagForm && (
-        <div className="alert alert-info">
-          <form onSubmit={handleTagSubmit}>
-            <div className="row g-2 align-items-start">
-              <div className="col-md-3">
-                <label className="form-label">Tag Name</label>
-              </div>
-              <div className="col-md-6">
-                <input
-                  type="text"
-                  name="name"
-                  value={tagName}
-                  onChange={handleTagNameChange}
-                  className="form-control"
-                />
-                {tagErrorMsg && (
-                  <div className="text-danger mt-1">{tagErrorMsg}</div>
-                )}
-              </div>
-            </div>
-            <div className="row g-2 align-items-start mt-2">
-              <div className="col-md-3">
-                <label className="form-label">Unit (optional)</label>
-              </div>
-              <div className="col-md-6">
-                <input
-                  type="text"
-                  value={tagUnit}
-                  onChange={(e) => setTagUnit(e.target.value)}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-3">
-                <button type="submit" className="btn btn-success w-100">
-                  Save
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-      )}
+      <RightPanel
+        isOpen={showChapterForm}
+        onClose={resetChapterForm}
+        title={editingId ? "Edit chapter" : "Add chapter"}
+      >
+        <form onSubmit={handleChapterSubmit}>
+          <div className="mb-3">
+            <label className="form-label">Chapter title</label>
+            <input
+              type="text"
+              name="chapterTitle"
+              value={chapterForm.chapterTitle}
+              onChange={handleChapterFieldChange}
+              className="form-control"
+            />
+            {titleErrorMsg && (
+              <div className="text-danger mt-1">{titleErrorMsg}</div>
+            )}
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Description</label>
+            <input
+              type="text"
+              name="chapterDesc"
+              value={chapterForm.chapterDesc}
+              onChange={handleChapterFieldChange}
+              className="form-control"
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Order column</label>
+            <input
+              type="number"
+              name="orderColumn"
+              value={chapterForm.orderColumn}
+              onChange={handleChapterFieldChange}
+              className="form-control"
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Thumbnail URL (optional)</label>
+            <input
+              type="text"
+              name="chapterThumbnail"
+              value={chapterForm.chapterThumbnail}
+              onChange={handleChapterFieldChange}
+              className="form-control"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-success w-100"
+            disabled={saving}
+          >
+            {saving ? "Saving..." : editingId ? "Update" : "Save"}
+          </button>
+        </form>
+      </RightPanel>
 
       <div className="tag-folder-grid">
-        {tags.map((tag) => (
+        {chapters.map((chapter) => (
           <div
-            key={tag.id}
-            className={`tag-folder-card ${selectedTagId === tag.id ? "active" : ""}`}
-            onClick={() => setSelectedTagId(tag.id)}
+            key={chapter._id}
+            className="tag-folder-card"
+            onClick={() =>
+              navigate(`/teacher/content/${subSubCategoryId}/chapter/${chapter._id}`)
+            }
           >
+            <button
+              type="button"
+              className="tag-folder-edit-btn"
+              title="Edit chapter"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(chapter);
+              }}
+            >
+              ✏️
+            </button>
             <span className="tag-folder-icon">📁</span>
-            <span>{tag.name}</span>
-            {tag.unit && <span className="tag-folder-unit">{tag.unit}</span>}
-            <span className="tag-folder-count">{tag.topics.length} topic(s)</span>
+            <span>{chapter.chapterTitle}</span>
+            {chapter.chapterDesc && (
+              <span className="tag-folder-unit">{chapter.chapterDesc}</span>
+            )}
           </div>
         ))}
 
-        {tags.length === 0 && (
-          <p className="text-muted">No tags yet — add one to get started.</p>
+        {chapters.length === 0 && (
+          <p className="text-muted">
+            No chapters yet — add one to get started.
+          </p>
         )}
       </div>
-
-      {selectedTag && (
-        <div>
-          <div className="d-flex align-items-center justify-content-between mb-3">
-            <h2 className="h5 mb-0">{selectedTag.name} — Topics</h2>
-            <div>
-              <button
-                type="button"
-                className="btn btn-primary btn-sm me-2"
-                onClick={() =>
-                  showTopicForm ? resetTopicForm() : setShowTopicForm(true)
-                }
-              >
-                {showTopicForm ? "Close" : "+ Add Topic"}
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline-danger btn-sm"
-                onClick={() => handleDeleteTag(selectedTag.id)}
-              >
-                Delete Tag
-              </button>
-            </div>
-          </div>
-
-          {showTopicForm && (
-            <div className="alert alert-info">
-              <form onSubmit={handleTopicSubmit}>
-                <div className="mb-3">
-                  <label className="form-label">Learning content</label>
-                  <textarea
-                    name="learning"
-                    value={topicForm.learning}
-                    onChange={handleTopicFieldChange}
-                    className="form-control"
-                    rows={3}
-                  />
-                  {learningErrorMsg && (
-                    <div className="text-danger mt-1">{learningErrorMsg}</div>
-                  )}
-                </div>
-
-                <div className="row g-2">
-                  <div className="col-md-6">
-                    <label className="form-label">Practice question</label>
-                    <input
-                      type="text"
-                      name="practiceQuestion"
-                      value={topicForm.practiceQuestion}
-                      onChange={handleTopicFieldChange}
-                      className="form-control"
-                    />
-                  </div>
-                  <div className="col-md-6">
-                    <label className="form-label">Practice answer</label>
-                    <input
-                      type="text"
-                      name="practiceAnswer"
-                      value={topicForm.practiceAnswer}
-                      onChange={handleTopicFieldChange}
-                      className="form-control"
-                    />
-                  </div>
-                </div>
-
-                <div className="row g-2 mt-1">
-                  <div className="col-md-4">
-                    <label className="form-label">Assignment title</label>
-                    <input
-                      type="text"
-                      name="assignmentTitle"
-                      value={topicForm.assignmentTitle}
-                      onChange={handleTopicFieldChange}
-                      className="form-control"
-                    />
-                  </div>
-                  <div className="col-md-5">
-                    <label className="form-label">Assignment description</label>
-                    <input
-                      type="text"
-                      name="assignmentDescription"
-                      value={topicForm.assignmentDescription}
-                      onChange={handleTopicFieldChange}
-                      className="form-control"
-                    />
-                  </div>
-                  <div className="col-md-3">
-                    <label className="form-label">Due date</label>
-                    <input
-                      type="date"
-                      name="assignmentDueDate"
-                      value={topicForm.assignmentDueDate}
-                      onChange={handleTopicFieldChange}
-                      className="form-control"
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-3 mt-2">
-                  <label className="form-label">Notebook link (optional)</label>
-                  <input
-                    type="text"
-                    name="noteBookLink"
-                    value={topicForm.noteBookLink}
-                    onChange={handleTopicFieldChange}
-                    className="form-control"
-                  />
-                </div>
-
-                <button type="submit" className="btn btn-success">
-                  Save Topic
-                </button>
-              </form>
-            </div>
-          )}
-
-          <ul className="list-view-items">
-            {selectedTag.topics.map((topic) => (
-              <li key={topic.id} className="list-view-item">
-                <div className="d-flex align-items-start justify-content-between">
-                  <p className="mb-0">{topic.learning}</p>
-                  <button
-                    type="button"
-                    className="btn btn-outline-danger btn-sm ms-2"
-                    onClick={() => handleDeleteTopic(topic.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-
-                {topic.practice.length > 0 && (
-                  <p className="list-view-item-desc mb-0">
-                    Practice: {topic.practice[0].question}
-                  </p>
-                )}
-                {topic.assignment.length > 0 && (
-                  <p className="list-view-item-desc mb-0">
-                    Assignment: {topic.assignment[0].title}
-                    {topic.assignment[0].dueDate &&
-                      ` (due ${topic.assignment[0].dueDate})`}
-                  </p>
-                )}
-                {topic.noteBookLink && (
-                  <p className="list-view-item-desc mb-0">
-                    Notebook: {topic.noteBookLink}
-                  </p>
-                )}
-              </li>
-            ))}
-
-            {selectedTag.topics.length === 0 && (
-              <p className="text-muted">No topics in this tag yet.</p>
-            )}
-          </ul>
-        </div>
-      )}
     </div>
   );
 }

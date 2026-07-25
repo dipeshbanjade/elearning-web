@@ -16,34 +16,17 @@ interface Category {
   name: string;
 }
 
-interface SubCategory {
-  _id: string;
-  name: string;
-  categoryId: string;
-}
-
-interface SubSubCategory {
-  _id: string;
-  name: string;
-  categoryId: string;
-  subCategoryId: string;
-}
-
 const emptyCreateForm = {
   fullname: "",
   username: "",
   password: "",
   catId: "",
-  subcatId: "",
-  subsubCatId: "",
 };
 
 const emptyEditForm = {
   fullname: "",
   phoneNo: "",
   catId: "",
-  subcatId: "",
-  subsubCatId: "",
 };
 
 const emptyErrors = {
@@ -51,16 +34,11 @@ const emptyErrors = {
   usernameErr: "",
   passwordErr: "",
   catIdErr: "",
-  subcatIdErr: "",
 };
 
 export default function ManageTeacher() {
   const [teachers, setTeachers] = useState<UserRecord[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
-  const [subSubCategories, setSubSubCategories] = useState<SubSubCategory[]>(
-    [],
-  );
 
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
   const [createForm, setCreateForm] = useState(emptyCreateForm);
@@ -87,10 +65,8 @@ export default function ManageTeacher() {
 
   const fetchCategoryOptions = useCallback(async () => {
     try {
-      const res = await superAdminRoute.getCategoryTree();
-      setCategories(res?.categories ?? []);
-      setSubCategories(res?.subCategories ?? []);
-      setSubSubCategories(res?.subSubCategories ?? []);
+      const res = await superAdminRoute.getAllCategories(1, 1000);
+      setCategories(res?.data ?? []);
     } catch (error) {
       console.error(error);
     }
@@ -99,12 +75,11 @@ export default function ManageTeacher() {
   const fetchTeachers = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await superAdminApi.fetchUsersByRole(
-        USER_ROLE,
+      const res = await superAdminApi.fetchUsersByRole(USER_ROLE, {
         page,
         limit,
         search,
-      );
+      });
       if (res) {
         const pagination = res?.pagination ?? {};
         setTeachers(res?.data ?? []);
@@ -157,26 +132,14 @@ export default function ManageTeacher() {
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    setCreateForm((prev) => {
-      if (name === "catId")
-        return { ...prev, catId: value, subcatId: "", subsubCatId: "" };
-      if (name === "subcatId")
-        return { ...prev, subcatId: value, subsubCatId: "" };
-      return { ...prev, [name]: value };
-    });
+    setCreateForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleEditChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    setEditForm((prev) => {
-      if (name === "catId")
-        return { ...prev, catId: value, subcatId: "", subsubCatId: "" };
-      if (name === "subcatId")
-        return { ...prev, subcatId: value, subsubCatId: "" };
-      return { ...prev, [name]: value };
-    });
+    setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const validateCreate = () => {
@@ -200,10 +163,6 @@ export default function ManageTeacher() {
       next.catIdErr = "Please select a category";
       ok = false;
     }
-    if (!createForm.subcatId) {
-      next.subcatIdErr = "Please select a subcategory";
-      ok = false;
-    }
 
     setErrors(next);
     return ok;
@@ -222,10 +181,6 @@ export default function ManageTeacher() {
       next.catIdErr = "Please select a category";
       ok = false;
     }
-    if (!editForm.subcatId) {
-      next.subcatIdErr = "Please select a subcategory";
-      ok = false;
-    }
 
     setErrors(next);
     return ok;
@@ -242,8 +197,6 @@ export default function ManageTeacher() {
         password: createForm.password,
         confirmPassword: createForm.password,
         catId: createForm.catId,
-        subcatId: createForm.subcatId,
-        subsubCatId: createForm.subsubCatId || undefined,
         userRole: USER_ROLE,
       });
       await fetchTeachers();
@@ -262,8 +215,6 @@ export default function ManageTeacher() {
         fullname: editForm.fullname,
         phoneNo: editForm.phoneNo,
         catId: editForm.catId,
-        subcatId: editForm.subcatId,
-        subsubCatId: editForm.subsubCatId || undefined,
       });
       await fetchTeachers();
     } catch (error) {
@@ -278,8 +229,6 @@ export default function ManageTeacher() {
       fullname: teacher.fullname,
       phoneNo: teacher.phoneNo,
       catId: teacher.Category?.[0]?._id ?? "",
-      subcatId: teacher.SubCategory?.[0]?._id ?? "",
-      subsubCatId: teacher.SubSubCategory?.[0]?._id ?? "",
     });
     setErrors(emptyErrors);
     setPanelOpen(true);
@@ -293,19 +242,6 @@ export default function ManageTeacher() {
       console.error(error);
     }
   };
-
-  const createSubCategories = subCategories.filter(
-    (sc) => sc.categoryId === createForm.catId,
-  );
-  const editSubCategories = subCategories.filter(
-    (sc) => sc.categoryId === editForm.catId,
-  );
-  const createSubSubCategories = subSubCategories.filter(
-    (ssc) => ssc.subCategoryId === createForm.subcatId,
-  );
-  const editSubSubCategories = subSubCategories.filter(
-    (ssc) => ssc.subCategoryId === editForm.subcatId,
-  );
 
   return (
     <div>
@@ -417,45 +353,6 @@ export default function ManageTeacher() {
               )}
             </div>
 
-            <div className="mb-3">
-              <label className="form-label">Subcategory</label>
-              <select
-                name="subcatId"
-                value={editForm.subcatId}
-                onChange={handleEditChange}
-                className="form-select"
-                disabled={!editForm.catId}
-              >
-                <option value="">Select subcategory</option>
-                {editSubCategories.map((sc) => (
-                  <option key={sc._id} value={sc._id}>
-                    {sc.name}
-                  </option>
-                ))}
-              </select>
-              {errors.subcatIdErr && (
-                <div className="text-danger mt-1">{errors.subcatIdErr}</div>
-              )}
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label">Subsubcategory (optional)</label>
-              <select
-                name="subsubCatId"
-                value={editForm.subsubCatId}
-                onChange={handleEditChange}
-                className="form-select"
-                disabled={!editForm.subcatId}
-              >
-                <option value="">Select subsubcategory</option>
-                {editSubSubCategories.map((ssc) => (
-                  <option key={ssc._id} value={ssc._id}>
-                    {ssc.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             <button type="submit" className="btn btn-success w-100">
               Update
             </button>
@@ -522,45 +419,6 @@ export default function ManageTeacher() {
               {errors.catIdErr && (
                 <div className="text-danger mt-1">{errors.catIdErr}</div>
               )}
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label">Subcategory</label>
-              <select
-                name="subcatId"
-                value={createForm.subcatId}
-                onChange={handleCreateChange}
-                className="form-select"
-                disabled={!createForm.catId}
-              >
-                <option value="">Select subcategory</option>
-                {createSubCategories.map((sc) => (
-                  <option key={sc._id} value={sc._id}>
-                    {sc.name}
-                  </option>
-                ))}
-              </select>
-              {errors.subcatIdErr && (
-                <div className="text-danger mt-1">{errors.subcatIdErr}</div>
-              )}
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label">Subsubcategory (optional)</label>
-              <select
-                name="subsubCatId"
-                value={createForm.subsubCatId}
-                onChange={handleCreateChange}
-                className="form-select"
-                disabled={!createForm.subcatId}
-              >
-                <option value="">Select subsubcategory</option>
-                {createSubSubCategories.map((ssc) => (
-                  <option key={ssc._id} value={ssc._id}>
-                    {ssc.name}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <button type="submit" className="btn btn-success w-100">

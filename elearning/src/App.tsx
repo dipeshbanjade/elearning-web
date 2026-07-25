@@ -20,6 +20,7 @@ import ClassSubjectAssignment from "./admin/superadmin/teacher/classAssignment";
 import ManageLearner from "./admin/superadmin/learner";
 import TeacherDashboard from "./admin/teacher";
 import TeacherContent from "./admin/teacher/content";
+import ChapterContent from "./admin/teacher/content/chapterContent";
 import TeacherLearner from "./admin/teacher/teacherLearner";
 import LearnerNotice from "./admin/teacher/notice";
 import Assignment from "./admin/teacher/assignment";
@@ -100,6 +101,10 @@ function App() {
           <Route index element={<TeacherDashboard />} />
           <Route path="learner" element={<TeacherLearner />} />
           <Route path="content/:id" element={<TeacherContent />} />
+          <Route
+            path="content/:id/chapter/:chapterId"
+            element={<ChapterContent />}
+          />
           <Route path="notice" element={<LearnerNotice />} />
           <Route path="assignment" element={<Assignment />} />
         </Route>

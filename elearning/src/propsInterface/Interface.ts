@@ -30,6 +30,7 @@ export interface UserRecord {
   Category?: NamedRef[];
   SubCategory?: NamedRef[];
   SubSubCategory?: NamedRef[];
+  catId: string;
 }
 
 export interface UserListProps {
