@@ -14,8 +14,13 @@ class LoginApi {
         },
       });
       return login.data;
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      return (
+        error?.response?.data ?? {
+          success: false,
+          message: "Login failed. Please try again.",
+        }
+      );
     }
   }
   async userRegister(data: {

@@ -1,26 +1,7 @@
-// Fake data standing in for the backend until the real endpoints exist.
-// Swap fetchDashboardSubjects()/etc for real API calls once the server side is ready.
-
-export type Topic = {
-  id: string;
-  title: string;
-  videoUrl: string;
-  duration: string;
-  description: string;
-};
-
-export type Chapter = {
-  id: string;
-  title: string;
-  topics: Topic[];
-};
-
-export type Subject = {
-  id: string;
-  name: string;
-  icon: string;
-  chapters: Chapter[];
-};
+// Fake data standing in for backend features that don't exist yet
+// (learner progress, notices, assignment status, video Q&A, discussion).
+// Subjects/chapters/chapter content now come from the real API — see
+// src/learner/types.ts and src/api/learner.ts.
 
 export type VideoQuestion = {
   id: string;
@@ -36,14 +17,6 @@ export type DiscussionMessage = {
   role: "student" | "teacher";
   message: string;
   postedAt: string;
-};
-
-export type PracticeQuestion = {
-  id: string;
-  question: string;
-  options: string[];
-  correctIndex: number;
-  explanation: string;
 };
 
 export type AssignmentStatus = "pending" | "in-progress" | "done";
@@ -74,176 +47,12 @@ export type Notice = {
   postedAt: string;
 };
 
-export type NotebookResource = {
-  id: string;
-  title: string;
-  fileUrl: string;
-  uploadedBy: string;
-  uploadedAt: string;
-};
-
 export type ProgressStat = {
   id: string;
   label: string;
   value: number;
   detail: string;
 };
-
-// A handful of royalty-free sample clips so every video tile isn't identical.
-const SAMPLE_VIDEOS = [
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-];
-
-export const mockSubjects: Subject[] = [
-  {
-    id: "sub-math",
-    name: "Mathematics",
-    icon: "📐",
-    chapters: [
-      {
-        id: "math-ch1",
-        title: "Algebra Basics",
-        topics: [
-          {
-            id: "math-ch1-t1",
-            title: "Introduction to Variables",
-            videoUrl: SAMPLE_VIDEOS[0],
-            duration: "8:24",
-            description:
-              "What a variable is, why we use letters instead of numbers, and how to read simple expressions.",
-          },
-          {
-            id: "math-ch1-t2",
-            title: "Solving Linear Equations",
-            videoUrl: SAMPLE_VIDEOS[1],
-            duration: "11:02",
-            description:
-              "Step by step method for isolating x in a one-variable linear equation.",
-          },
-        ],
-      },
-      {
-        id: "math-ch2",
-        title: "Geometry Foundations",
-        topics: [
-          {
-            id: "math-ch2-t1",
-            title: "Angles and Triangles",
-            videoUrl: SAMPLE_VIDEOS[2],
-            duration: "9:47",
-            description:
-              "Types of angles, the angle sum property of a triangle, and a few worked examples.",
-          },
-          {
-            id: "math-ch2-t2",
-            title: "Perimeter and Area",
-            videoUrl: SAMPLE_VIDEOS[0],
-            duration: "7:15",
-            description:
-              "Formulas for common shapes and how to pick the right one for a word problem.",
-          },
-        ],
-      },
-      {
-        id: "math-ch3",
-        title: "Introduction to Statistics",
-        topics: [
-          {
-            id: "math-ch3-t1",
-            title: "Mean, Median and Mode",
-            videoUrl: SAMPLE_VIDEOS[1],
-            duration: "10:10",
-            description:
-              "The three most common measures of central tendency and when to use each.",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "sub-science",
-    name: "Science",
-    icon: "🔬",
-    chapters: [
-      {
-        id: "sci-ch1",
-        title: "The Cell",
-        topics: [
-          {
-            id: "sci-ch1-t1",
-            title: "Cell Structure",
-            videoUrl: SAMPLE_VIDEOS[2],
-            duration: "12:30",
-            description:
-              "A tour of the parts of a cell and what each one does, in plants and animals.",
-          },
-          {
-            id: "sci-ch1-t2",
-            title: "Cell Division",
-            videoUrl: SAMPLE_VIDEOS[0],
-            duration: "9:05",
-            description: "How mitosis copies a cell's genetic material and splits it in two.",
-          },
-        ],
-      },
-      {
-        id: "sci-ch2",
-        title: "Forces and Motion",
-        topics: [
-          {
-            id: "sci-ch2-t1",
-            title: "Newton's Laws",
-            videoUrl: SAMPLE_VIDEOS[1],
-            duration: "13:52",
-            description: "The three laws of motion explained with everyday examples.",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "sub-english",
-    name: "English",
-    icon: "📖",
-    chapters: [
-      {
-        id: "eng-ch1",
-        title: "Grammar Essentials",
-        topics: [
-          {
-            id: "eng-ch1-t1",
-            title: "Parts of Speech",
-            videoUrl: SAMPLE_VIDEOS[2],
-            duration: "6:40",
-            description: "Nouns, verbs, adjectives and the rest, with quick examples of each.",
-          },
-          {
-            id: "eng-ch1-t2",
-            title: "Tenses Overview",
-            videoUrl: SAMPLE_VIDEOS[0],
-            duration: "14:18",
-            description: "Past, present and future tense, and the forms within each.",
-          },
-        ],
-      },
-      {
-        id: "eng-ch2",
-        title: "Essay Writing",
-        topics: [
-          {
-            id: "eng-ch2-t1",
-            title: "Structuring an Essay",
-            videoUrl: SAMPLE_VIDEOS[1],
-            duration: "10:55",
-            description: "Introduction, body paragraphs and conclusion — what each one needs.",
-          },
-        ],
-      },
-    ],
-  },
-];
 
 export const mockVideoQuestions: Record<string, VideoQuestion[]> = {
   "math-ch1-t1": [
@@ -307,71 +116,6 @@ export const mockDiscussion: Record<string, DiscussionMessage[]> = {
       role: "student",
       message: "The diagram around 6:00 was really helpful for the labeling homework.",
       postedAt: "2026-07-09T10:00:00Z",
-    },
-  ],
-};
-
-// Notebook = reference material the teacher has uploaded for a topic (a PDF),
-// not personal notes — not every topic has one yet.
-const SAMPLE_PDF = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
-
-export const mockNotebooks: Record<string, NotebookResource> = {
-  "math-ch1-t1": {
-    id: "nb1",
-    title: "Introduction to Variables — Notes",
-    fileUrl: SAMPLE_PDF,
-    uploadedBy: "Mr. Karki",
-    uploadedAt: "2026-07-05T09:00:00Z",
-  },
-  "math-ch1-t2": {
-    id: "nb2",
-    title: "Solving Linear Equations — Worked Examples",
-    fileUrl: SAMPLE_PDF,
-    uploadedBy: "Mr. Karki",
-    uploadedAt: "2026-07-06T09:00:00Z",
-  },
-  "sci-ch1-t1": {
-    id: "nb3",
-    title: "Cell Structure — Labelled Diagram Sheet",
-    fileUrl: SAMPLE_PDF,
-    uploadedBy: "Mrs. Shrestha",
-    uploadedAt: "2026-07-07T09:00:00Z",
-  },
-};
-
-export const mockPractice: Record<string, PracticeQuestion[]> = {
-  "math-ch1-t1": [
-    {
-      id: "pq1",
-      question: "In the expression 3x + 5, what is the variable?",
-      options: ["3", "x", "5", "+"],
-      correctIndex: 1,
-      explanation: "x is the symbol standing in for an unknown number.",
-    },
-    {
-      id: "pq2",
-      question: "If x = 4, what does 2x equal?",
-      options: ["6", "2", "8", "42"],
-      correctIndex: 2,
-      explanation: "2x means 2 multiplied by x, so 2 × 4 = 8.",
-    },
-  ],
-  "math-ch1-t2": [
-    {
-      id: "pq3",
-      question: "Solve for x: x + 7 = 12",
-      options: ["x = 19", "x = 5", "x = 7", "x = 12"],
-      correctIndex: 1,
-      explanation: "Subtract 7 from both sides: x = 12 - 7 = 5.",
-    },
-  ],
-  "sci-ch1-t1": [
-    {
-      id: "pq4",
-      question: "Which part of the cell controls what enters and leaves it?",
-      options: ["Nucleus", "Cell membrane", "Mitochondria", "Cytoplasm"],
-      correctIndex: 1,
-      explanation: "The cell membrane regulates the movement of substances in and out.",
     },
   ],
 };
