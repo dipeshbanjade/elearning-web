@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, Outlet, useNavigate } from "react-router-dom";
 import LoginApi from "../api/login";
 import { getStoredUser, clearStoredUser } from "../helper/helper";
+import Loading from "../helper/Loading";
 import AdminSidebar from "./AdminSidebar";
 
 export default function SuperAdminLayout() {
@@ -32,17 +33,17 @@ export default function SuperAdminLayout() {
   if (user.userRole !== "sup") return <Navigate to="/dashboard" replace />;
 
   const handleLogout = async () => {
+    setLoggingOut(true);
     try {
-      setLoggingOut(true);
       if (user?.token) await LoginApi.userLogout(user.token);
     } catch (error) {
       console.log(error);
-    } finally {
-      setLoggingOut(false);
     }
     clearStoredUser();
     navigate("/");
   };
+
+  if (loggingOut) return <Loading />;
 
   return (
     <div className="app-layout">
@@ -81,13 +82,9 @@ export default function SuperAdminLayout() {
               </div>
 
               <div className="dd-menu">
-                <button
-                  className="dd-item danger"
-                  onClick={handleLogout}
-                  disabled={loggingOut}
-                >
+                <button className="dd-item danger" onClick={handleLogout}>
                   <span className="dd-icon">🚪</span>
-                  {loggingOut ? "Logging out…" : "Logout"}
+                  Logout
                 </button>
               </div>
             </div>

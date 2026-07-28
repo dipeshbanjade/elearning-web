@@ -87,10 +87,14 @@ export default function ManageLearner() {
 
   const fetchCategoryOptions = useCallback(async () => {
     try {
-      const res = await superAdminRoute.getCategoryTree();
-      setCategories(res?.categories ?? []);
-      setSubCategories(res?.subCategories ?? []);
-      setSubSubCategories(res?.subSubCategories ?? []);
+      const [catRes, subCatRes, subSubCatRes] = await Promise.all([
+        superAdminRoute.getAllCategories(1, 1000),
+        superAdminRoute.getAllSubCategories(1, 1000),
+        superAdminRoute.getAllSubSubCategories(1, 1000),
+      ]);
+      setCategories(catRes?.data ?? []);
+      setSubCategories(subCatRes?.data ?? []);
+      setSubSubCategories(subSubCatRes?.data ?? []);
     } catch (error) {
       console.error(error);
     }
@@ -99,12 +103,11 @@ export default function ManageLearner() {
   const fetchLearners = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await superAdminApi.fetchUsersByRole(
-        USER_ROLE,
+      const res = await superAdminApi.fetchUsersByRole(USER_ROLE, {
         page,
         limit,
         search,
-      );
+      });
       if (res) {
         const pagination = res?.pagination ?? {};
         setLearners(res?.data ?? []);

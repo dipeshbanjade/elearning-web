@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { checkEmail, checkPassword, setStoredUser } from "../helper/helper";
 import LoginApi from "../api/login";
+import Loading from "../helper/Loading";
 
 interface ErrorState {
   usernameErr: string;
@@ -15,6 +16,8 @@ export default function Login() {
     usernameErr: "",
     passwordErr: "",
   });
+  const [loggingIn, setLoggingIn] = useState(false);
+  const [formError, setFormError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,15 +46,17 @@ export default function Login() {
   const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
     if (!formValidation()) return;
+    setFormError("");
     try {
+      setLoggingIn(true);
       const login = await LoginApi.userLogin(username, password);
       if (login?.loginUser) {
         // merge top-level token in case backend separates it from the user object
         const userData = {
           ...login.loginUser,
           token: login.loginUser.token ?? login.token,
+          subjectList: login?.subjectList || [],
         };
-        console.log("userDetails", userData);
         setStoredUser(userData);
         if (userData.userRole === "sup") {
           navigate("/admin");
@@ -62,11 +67,23 @@ export default function Login() {
         } else {
           navigate("/dashboard");
         }
+        // Left loggingIn true on purpose — this component unmounts on
+        // navigation, so there's no "form flashes back" moment to avoid.
+        return;
       }
+      const message = Array.isArray(login?.message)
+        ? login.message.join(", ")
+        : login?.message;
+      setFormError(message || "Invalid email or password.");
+      setLoggingIn(false);
     } catch (err) {
       console.error("Login failed:", err);
+      setFormError("Something went wrong. Please try again.");
+      setLoggingIn(false);
     }
   };
+
+  if (loggingIn) return <Loading />;
 
   return (
     <div className="auth-page">
@@ -105,6 +122,12 @@ export default function Login() {
             <h1>Welcome back</h1>
             <p>Sign in to continue to your dashboard</p>
           </div>
+
+          {formError && (
+            <div className="auth-form-error">
+              <span>⚠</span> {formError}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="auth-field">

@@ -190,6 +190,20 @@ body {
     }
   }
 
+  .auth-form-error {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: 1.1rem;
+    padding: .75rem 1rem;
+    border: 1px solid rgba($error, .3);
+    border-radius: $radius;
+    background: rgba($error, .08);
+    color: $error;
+    font-size: .85rem;
+    font-weight: 600;
+  }
+
   // ── Form fields ─────────────────────────────────────────
   .auth-field {
     margin-bottom: 1.1rem;

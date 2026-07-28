@@ -7,7 +7,7 @@ interface CreateUserPayload {
   password: string;
   confirmPassword: string;
   catId: string;
-  subcatId: string;
+  subcatId?: string;
   subsubCatId?: string;
   userRole: string;
 }
@@ -21,6 +21,15 @@ interface UpdateUserPayload {
   subsubCatId?: string;
 }
 
+interface TeacherAssignPayload {
+  userId: string;
+  categoryId: string;
+  categoryName: string;
+  subCatId: string;
+  subCatName: string;
+  subjects: { subsubCatId: string; subsubcatName: string }[];
+}
+
 class superAdminApi {
   baseUrl: string = import.meta.env.VITE_BASEAPI || "http://localhost:8093/api";
 
@@ -31,19 +40,43 @@ class superAdminApi {
 
   async fetchUsersByRole(
     role: string,
-    page: number,
-    limit: number,
-    search?: string,
+    options?: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      havePagination?: boolean;
+    },
   ) {
     const url = `${this.baseUrl}/fetch-user-by-role/${role}`;
     const res = await axios({
-      url: url,
+      url,
       method: "get",
-      params: { page, limit, search },
+      params: {
+        page: options?.page,
+        limit: options?.limit,
+        search: options?.search,
+        havePagination: options?.havePagination,
+      },
       headers: this.authHeaders(),
     });
     return res?.data;
   }
+
+  // async fetchUsersByRole(
+  //   role: string,
+  //   page: number,
+  //   limit: number,
+  //   search?: string,
+  // ) {
+  //   const url = `${this.baseUrl}/fetch-user-by-role/${role}`;
+  //   const res = await axios({
+  //     url: url,
+  //     method: "get",
+  //     params: { page, limit, search },
+  //     headers: this.authHeaders(),
+  //   });
+  //   return res?.data;
+  // }
 
   // The controller (createUserFromAdmin) is role-agnostic —
   // pass userRole: "teacher" | "user" to create either kind of account.
@@ -84,6 +117,38 @@ class superAdminApi {
     const res = await axios({
       url: url,
       method: "delete",
+      headers: this.authHeaders(),
+    });
+    return res?.data;
+  }
+
+  async fetchSubCatSubsubCat(catId: string) {
+    // grade and subject
+    const url = `${this.baseUrl}/superadmin/fetch-grade-subject/${catId}`;
+    const res = await axios({
+      url: url,
+      method: "get",
+      headers: this.authHeaders(),
+    });
+    return res?.data;
+  }
+
+  async assignTeacherGradeSubject(data: TeacherAssignPayload) {
+    const url = `${this.baseUrl}/superadmin/assign-teacher-in-grade-subject`;
+    const res = await axios({
+      url: url,
+      method: "post",
+      data: data,
+      headers: this.authHeaders(),
+    });
+    return res?.data;
+  }
+
+  async fetchAllTeacherAssign() {
+    const url = `${this.baseUrl}/superadmin/fetch-all-teacher-assign`;
+    const res = await axios({
+      url: url,
+      method: "get",
       headers: this.authHeaders(),
     });
     return res?.data;

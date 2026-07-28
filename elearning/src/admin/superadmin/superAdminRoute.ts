@@ -44,8 +44,8 @@ class superAdminRoute {
 
   // Unpaginated categories + subcategories + subsubcategories in one call,
   // for cascading selects like the teacher/learner creation form.
-  async getCategoryTree() {
-    const url = this.baseUrl + `/admin/category-tree`;
+  async getTeacherMenu() {
+    const url = this.baseUrl + `/admin/fetch-teacher-menu`;
     const res = await axios({
       url: url,
       method: "get",

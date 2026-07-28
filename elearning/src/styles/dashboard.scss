@@ -217,7 +217,7 @@ $success:       #10B981;
   border-radius: 12px;
   overflow: hidden;
 
-  &.open { border-color: $primary; }
+  &.active { border-color: $primary; }
 }
 
 .chapter-head {
@@ -316,6 +316,94 @@ $success:       #10B981;
   margin-bottom: 1rem;
 }
 
+.chapter-content-list,
+.chapter-assignment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.chapter-content-item,
+.chapter-assignment-item {
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid $border;
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+}
+
+.chapter-assignment-title {
+  font-size: .95rem;
+  font-weight: 700;
+  color: $text;
+  margin-bottom: .5rem;
+}
+
+.chapter-content-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.chapter-content-title {
+  font-size: .95rem;
+  font-weight: 700;
+  color: $text;
+}
+
+.chapter-content-toggle {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: $primary-light;
+  color: $primary;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.chapter-content-body,
+.chapter-assignment-hint {
+  font-size: .85rem;
+  color: $text;
+  line-height: 1.6;
+}
+
+.chapter-content-body {
+  margin-top: .8rem;
+}
+
+.chapter-assignment-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .5rem;
+}
+
+.chapter-assignment-deadline {
+  flex-shrink: 0;
+  font-size: .72rem;
+  font-weight: 700;
+  color: $primary;
+  background: $primary-light;
+  border-radius: 20px;
+  padding: .15rem .6rem;
+}
+
 // Shown whenever the middle column isn't the lesson itself (progress,
 // assignment, notice, "view all" lists) — takes the learner back to
 // whichever topic they were last studying.
@@ -351,17 +439,25 @@ $success:       #10B981;
   background: $bg;
   border-radius: 10px;
   padding: .25rem;
+  overflow-x: auto;
 }
 
 .content-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  white-space: nowrap;
   border: none;
   background: none;
-  padding: .45rem 1.1rem;
+  padding: .55rem .6rem;
   border-radius: 8px;
-  font-size: .82rem;
+  font-size: .8rem;
   font-weight: 700;
   color: $text-muted;
   cursor: pointer;
+  transition: background .15s ease, color .15s ease, box-shadow .15s ease;
 
   &.active {
     background: $white;
@@ -370,12 +466,61 @@ $success:       #10B981;
   }
 }
 
+.content-tab-icon {
+  font-size: .9rem;
+}
+
 // ---- Video ----
+.video-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+
+.video-list-item {
+  padding: .45rem .9rem;
+  border: 1.5px solid $border;
+  border-radius: 20px;
+  background: $white;
+  color: $text-muted;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s ease;
+
+  &:hover {
+    border-color: $primary;
+    color: $primary;
+  }
+
+  &.active {
+    border-color: $primary;
+    background: $primary-light;
+    color: $primary;
+  }
+}
+
 .video-player-el {
   width: 100%;
   max-height: 420px;
   border-radius: 12px;
   background: #000;
+  display: block;
+}
+
+.video-player-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+.video-player-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
   display: block;
 }
 
@@ -1003,6 +1148,12 @@ $success:       #10B981;
 // ============================================================
 // MIDDLE — NOTEBOOK TAB (teacher-uploaded PDF)
 // ============================================================
+.notebook-item {
+  margin-bottom: 1.5rem;
+
+  &:last-child { margin-bottom: 0; }
+}
+
 .notebook-head {
   display: flex;
   align-items: flex-start;
@@ -1054,6 +1205,7 @@ $success:       #10B981;
 }
 
 .tag-folder-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1070,6 +1222,32 @@ $success:       #10B981;
   transition: all .15s ease;
 
   .tag-folder-icon { font-size: 2rem; }
+
+  .tag-folder-edit-btn {
+    position: absolute;
+    top: .5rem;
+    right: .5rem;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: $white;
+    color: $text-muted;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .15);
+    font-size: .8rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all .15s ease;
+
+    &:hover {
+      background: $primary;
+      color: $white;
+    }
+  }
 
   .tag-folder-unit {
     font-size: .72rem;
@@ -1103,5 +1281,69 @@ $success:       #10B981;
   border-style: dashed;
 
   &:hover { color: $primary; }
+}
+
+// ============================================================
+// CHAPTER DETAIL — content/video/pdf/practice/assignment tabs
+// ============================================================
+.chapter-detail-panel {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 1.5rem 1.75rem;
+}
+
+.chapter-nav-tabs {
+  border-bottom: 1px solid $border;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    color: $text-muted;
+    font-weight: 700;
+    font-size: .85rem;
+    padding: .7rem 1.1rem;
+    background: none;
+    transition: color .15s ease, border-color .15s ease;
+
+    &:hover {
+      color: $primary;
+      border-color: $border;
+    }
+
+    &.active {
+      color: $primary;
+      border-color: $primary;
+      background: none;
+    }
+  }
+}
+
+.chapter-tab-icon {
+  font-size: .9rem;
+}
+
+.chapter-tab-body {
+  max-width: 760px;
+}
+
+// Quill ships square corners by default — round them to match the rest
+// of the admin UI instead of leaving a jarring flat-edged box.
+.ql-toolbar.ql-snow {
+  border-color: $border;
+  border-radius: 10px 10px 0 0;
+  background: $bg;
+}
+
+.ql-container.ql-snow {
+  border-color: $border;
+  border-radius: 0 0 10px 10px;
+  font-size: .9rem;
 }
 

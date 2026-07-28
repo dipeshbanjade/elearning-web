@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 import LoginApi from "../api/login";
 import { getStoredUser, clearStoredUser } from "../helper/helper";
+import Loading from "../helper/Loading";
 
 interface Props {
   children: ReactNode;
@@ -36,17 +37,17 @@ export default function UserLayout({ children }: Props) {
   const close = () => setOpen(false);
 
   const handleLogout = async () => {
+    setLoggingOut(true);
     try {
-      setLoggingOut(true);
       if (user?.token) await LoginApi.userLogout(user.token);
     } catch (error) {
       console.log(error);
-    } finally {
-      setLoggingOut(false);
     }
     clearStoredUser();
     navigate("/");
   };
+
+  if (loggingOut) return <Loading />;
 
   return (
     <div className="app-layout">
@@ -94,9 +95,9 @@ export default function UserLayout({ children }: Props) {
 
                 <div className="dd-divider" />
 
-                <button className="dd-item danger" onClick={handleLogout} disabled={loggingOut}>
+                <button className="dd-item danger" onClick={handleLogout}>
                   <span className="dd-icon">🚪</span>
-                  {loggingOut ? "Logging out…" : "Log out"}
+                  Log out
                 </button>
               </div>
             </div>

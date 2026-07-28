@@ -7,17 +7,21 @@ interface Props {
   onLinkClick: () => void;
 }
 
-interface SubCategory {
-  _id: string;
-  name: string;
-  categoryId: string;
+interface AssignedSubject {
+  subsubCatId: string;
+  subsubcatName: string;
 }
 
-interface SubSubCategory {
-  _id: string;
-  name: string;
+interface AssignedGrade {
+  subCatId: string;
+  subCatName: string;
+  subjectMenu: AssignedSubject[];
+}
+
+interface AssignedCategory {
   categoryId: string;
-  subCategoryId: string;
+  categoryName: string;
+  submenu: AssignedGrade[];
 }
 
 export default function TeacherSidebar({ open, onLinkClick }: Props) {
@@ -27,19 +31,15 @@ export default function TeacherSidebar({ open, onLinkClick }: Props) {
   );
   const [openSubCatId, setOpenSubCatId] = useState("");
 
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
-  const [subSubCategories, setSubSubCategories] = useState<SubSubCategory[]>(
-    [],
-  );
+  const [assignMenu, setAssignMenu] = useState<AssignedCategory[]>([]);
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `nav-link admin-nav-link ${isActive ? "active" : ""}`;
 
-  const fetchTree = useCallback(async () => {
+  const fetchTeacherMenu = useCallback(async () => {
     try {
-      const res = await superAdminRoute.getCategoryTree();
-      setSubCategories(res?.subCategories ?? []);
-      setSubSubCategories(res?.subSubCategories ?? []);
+      const res = await superAdminRoute.getTeacherMenu();
+      setAssignMenu(res?.assignMenu ?? []);
     } catch (error) {
       console.error(error);
     }
@@ -48,16 +48,18 @@ export default function TeacherSidebar({ open, onLinkClick }: Props) {
   useEffect(() => {
     let ignore = false;
     (async () => {
-      if (!ignore) await fetchTree();
+      if (!ignore) await fetchTeacherMenu();
     })();
     return () => {
       ignore = true;
     };
-  }, [fetchTree]);
+  }, [fetchTeacherMenu]);
 
   const toggleSubCat = (id: string) => {
     setOpenSubCatId((current) => (current === id ? "" : id));
   };
+
+  const grades = assignMenu.flatMap((category) => category.submenu);
 
   return (
     <aside
@@ -65,7 +67,12 @@ export default function TeacherSidebar({ open, onLinkClick }: Props) {
     >
       <ul className="nav flex-column p-3">
         <li className="nav-item">
-          <NavLink to="/teacher" end className={linkClass} onClick={onLinkClick}>
+          <NavLink
+            to="/teacher"
+            end
+            className={linkClass}
+            onClick={onLinkClick}
+          >
             🏠 Dashboard
           </NavLink>
         </li>
@@ -76,46 +83,43 @@ export default function TeacherSidebar({ open, onLinkClick }: Props) {
             className="btn admin-nav-link d-flex align-items-center text-start w-100"
             onClick={() => setSubCategoriesOpen((o) => !o)}
           >
-            📂 Subcategories
+            📂 My Subjects
             <span className="ms-auto">{subCategoriesOpen ? "−" : "+"}</span>
           </button>
 
           {subCategoriesOpen && (
             <ul className="nav flex-column ps-3">
-              {subCategories.map((sc) => {
-                const children = subSubCategories.filter(
-                  (ssc) => ssc.subCategoryId === sc._id,
-                );
-                const isOpen = openSubCatId === sc._id;
+              {grades.map((grade) => {
+                const isOpen = openSubCatId === grade.subCatId;
 
                 return (
-                  <li className="nav-item" key={sc._id}>
+                  <li className="nav-item" key={grade.subCatId}>
                     <button
                       type="button"
                       className="btn admin-nav-link d-flex align-items-center text-start w-100"
-                      onClick={() => toggleSubCat(sc._id)}
+                      onClick={() => toggleSubCat(grade.subCatId)}
                     >
-                      {sc.name}
+                      {grade.subCatName}
                       <span className="ms-auto">{isOpen ? "−" : "+"}</span>
                     </button>
 
                     {isOpen && (
                       <ul className="nav flex-column ps-3">
-                        {children.map((ssc) => (
-                          <li className="nav-item" key={ssc._id}>
+                        {grade.subjectMenu.map((subject) => (
+                          <li className="nav-item" key={subject.subsubCatId}>
                             <NavLink
-                              to={`/teacher/content/${ssc._id}`}
+                              to={`/teacher/content/${subject.subsubCatId}`}
                               className={linkClass}
                               onClick={onLinkClick}
                             >
-                              {ssc.name}
+                              {subject.subsubcatName}
                             </NavLink>
                           </li>
                         ))}
-                        {children.length === 0 && (
+                        {grade.subjectMenu.length === 0 && (
                           <li className="nav-item">
                             <span className="text-muted small ps-2">
-                              No subsubcategories yet
+                              No subjects assigned yet
                             </span>
                           </li>
                         )}
@@ -125,10 +129,10 @@ export default function TeacherSidebar({ open, onLinkClick }: Props) {
                 );
               })}
 
-              {subCategories.length === 0 && (
+              {grades.length === 0 && (
                 <li className="nav-item">
                   <span className="text-muted small ps-2">
-                    No subcategories yet
+                    No grades assigned yet
                   </span>
                 </li>
               )}
